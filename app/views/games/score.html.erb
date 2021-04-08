@@ -1,0 +1,43 @@
+<h1>Result</h1>
+
+<p><%= @word %></p>
+<p><%= @letters %></p>
+<p><%= @start %></p>
+
+<%
+require 'time'
+@start = Time.now
+ %>
+
+
+<%
+@letters = @letters.to_s.split("")
+ %>
+
+<%
+require 'open-uri'
+require 'json'
+
+end_time = Time.now
+
+
+def run_game(attempt, grid, start_time, final_time)
+  # TODO: runs the game and return detailed hash of result (with `:score`, `:message` and `:time` keys)
+  result = attempt.length.to_f + (100 - (final_time - start_time))
+  word = JSON.parse(open("https://wagon-dictionary.herokuapp.com/#{attempt}").read)
+  if word["found"] && attempt.upcase.split("").all? { |x| grid.count(x) >= attempt.upcase.split("").count(x) }
+    return { score: result, message: "well done", time: (final_time - start_time).to_f }
+  elsif !(attempt.upcase.split("").all? { |x| grid.count(x) >= attempt.upcase.split("").count(x) })
+    return { score: 0, message: "Your word is not in the grid", time: (final_time - start_time).to_f }
+  elsif !word["found"]
+    return { score: 0, message: "It is not an english word", time: (final_time - start_time).to_f }
+  end
+end
+
+result = run_game(@word, @letters, @start, end_time);
+%>
+
+<p><%= result[:message] %></p>
+<p>Your score = <%= result[:score] %></p>
+
+ <%= link_to "Play again!", new_path %>
